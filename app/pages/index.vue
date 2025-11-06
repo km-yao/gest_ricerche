@@ -55,26 +55,27 @@ function _ricercheToTreeTableNode(dati) {
 }
 
 function _tipoBadge(tipo) {
-  if (tipo == 'generica') {
-    return {
-      label: 'Generica',
-      severity: 'info'
-    }
-  } else if (tipo == 'complessa') {
-    return {
-      label: 'Complessa',
-      severity: 'warning'
-    }
-  } else if (tipo == 'per nome') {
-    return {
-      label: 'Per Nome',
-      severity: 'success'
-    }
-  }
-
-  return {
-    label: 'tipo',
-    severity: 'secondary'
+  switch (tipo) {
+    case 'generica':
+      return {
+        label: 'Generica',
+        severity: 'info'
+      }
+    case 'complessa':
+      return {
+        label: 'Complessa',
+        severity: 'warning'
+      }
+    case 'per nome':
+      return {
+        label: 'Per Nome',
+        severity: 'success'
+      }
+    default:
+      return {
+        label: 'tipo',
+        severity: 'secondary'
+      }
   }
 }
 
@@ -156,8 +157,10 @@ async function cancellaRicerca(id) {
 }
 
 async function downloadFile(id) {
-  const file = await getFilePerRicerca(id)
-  if (file != null) {
+  try {
+    const file = await getFilePerRicerca(id)
+    if (file.error) throw new Error(file.error)
+
     const file_name = file.name
     const file_data = file.fileData
 
@@ -173,6 +176,14 @@ async function downloadFile(id) {
       summary: 'Download',
       detail: 'Download del file ' + file_name,
       life: 3000
+    })
+  } catch (error) {
+    toast.add({
+      group: 'tr',
+      severity: 'error',
+      summary: 'Errore',
+      detail: 'Download: ' + error.message,
+      life: 6000
     })
   }
 }
@@ -283,7 +294,7 @@ function mostraFinestraJson(btn) {
 
             <template #empty>
               <div style="display: flex; justify-content: center; font-size: xx-large; margin: 3rem">
-                <h1>Tabella vuota</h1>
+                <h1>Tabella Vuota</h1>
               </div>
             </template>
 
