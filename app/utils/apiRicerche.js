@@ -105,3 +105,36 @@ export async function getFilePerRicerca(id) {
     return { error: error.message, status: 'error' }
   }
 }
+
+// // Documenti
+const API_DOCUMENTI_URL = 'http://localhost:8080/primoprogetto/documenti'
+
+export async function getAnteprima(id) {
+  try {
+    const response = await fetch(API_DOCUMENTI_URL + '/getDocumentoFileAnteprima/' + id)
+    if (!response.ok) throw new Error(`${response.status} : ${response.statusText}`)
+    return await response.json()
+  } catch (error) {
+    return { error: error.message, status: 'error' }
+  }
+}
+
+export async function getBase64File(id) {
+  try {
+    const response = await fetch(API_DOCUMENTI_URL + '/getDocumentoFile/' + id)
+    if (!response.ok) throw new Error(`${response.status} : ${response.statusText}`)
+    return await response.json()
+  } catch (error) {
+    return { error: error.message, status: 'error' }
+  }
+}
+
+export async function getAllDocumenti() {
+  try {
+    const response = await fetch(API_DOCUMENTI_URL + '/getDocumenti')
+    if (!response.ok) throw new Error(`${response.status} : ${response.statusText}`)
+    return await response.json()
+  } catch (error) {
+    return { error: error.message, status: 'error' }
+  }
+}

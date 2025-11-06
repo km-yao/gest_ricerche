@@ -77,7 +77,7 @@
             >
               <template #body="slotProps">
                 <div
-                  class="test"
+                  class=""
                   style="display: flex;"
                   @mouseenter="mostraPopover($event, slotProps.node)"
                   @mouseleave="nascondiPopover"
@@ -147,7 +147,10 @@
                 :width="popover_image_width"
               />
               <div v-show="isLoading">
-                <i class="pi pi-spinner-dotted pi-spin" style="font-size: 3rem;"/>
+                <i
+                  class="pi pi-spinner-dotted pi-spin"
+                  style="font-size: 3rem;"
+                />
               </div>
             </div>
           </Popover>
@@ -176,7 +179,7 @@ const mostraPopover = (event, node) => {
   isLoading.value = true
   popover_toggle.value.hide()
 
-  getAnteprima(node.key)
+  setAnteprimaPopover(node.key)
   popover_toggle.value.show(event)
 }
 
@@ -188,14 +191,12 @@ const nascondiPopover = () => {
 }
 
 async function cerca() {
-  const API_FILE_URL = 'http://localhost:8080/primoprogetto/documenti/getDocumenti'
-
   try {
-    const response = await fetch(API_FILE_URL)
-    if (!response.ok) throw new Error(`${response.status} : ${response.statusText}`)
+    const lista = await getAllDocumenti()
+    if (lista.error) throw new Error(lista.error)
 
     files.value = []
-    files.value = _toTreeTableNode(await response.json())
+    files.value = _toTreeTableNode(lista)
   } catch (error) {
     toast.add({
       group: 'tr',
@@ -207,17 +208,15 @@ async function cerca() {
   }
 }
 
-async function getAnteprima(id) {
-  const API_FILE_URL = 'http://localhost:8080/primoprogetto/documenti/getDocumentoFileAnteprima'
+async function setAnteprimaPopover(id) {
   try {
-    const response = await fetch(API_FILE_URL + '/' + id)
-    if (response.body != null) {
-      const file = await response.json()
-      popover_image_src.value = 'data:image/png;base64,' + file.anteprimaData
-      popover_image_width.value = 200
-      isLoading.value = false
-      await nextTick()
-    }
+    const anteprima = await getAnteprima(id)
+    if (anteprima.error) throw new Error(anteprima.error)
+
+    popover_image_src.value = 'data:image/png;base64,' + anteprima.anteprimaData
+    popover_image_width.value = 200
+    isLoading.value = false
+    await nextTick()
   } catch (error) {
     toast.add({
       group: 'tr',
@@ -231,29 +230,26 @@ async function getAnteprima(id) {
 }
 
 async function downloadFile(id) {
-  const API_FILE_URL = 'http://localhost:8080/primoprogetto/documenti/getDocumentoFile'
-
   try {
-    const response = await fetch(API_FILE_URL + '/' + id)
-    const file = await response.json()
-    if (file != null) {
-      const file_name = file.name
-      const file_data = file.fileData
+    const file = await getBase64File(id)
+    if (file.error) throw new Error(file.error)
 
-      const linkS = `data:application/octet-stream;base64,${file_data}`
-      const downlLink = document.createElement('a')
-      downlLink.href = linkS
-      downlLink.download = file_name
-      downlLink.click()
+    const file_name = file.name
+    const file_data = file.fileData
 
-      toast.add({
-        group: 'br',
-        severity: 'info',
-        summary: 'Download',
-        detail: 'Download del file ' + file_name,
-        life: 3000
-      })
-    }
+    const linkS = `data:application/octet-stream;base64,${file_data}`
+    const downlLink = document.createElement('a')
+    downlLink.href = linkS
+    downlLink.download = file_name
+    downlLink.click()
+
+    toast.add({
+      group: 'br',
+      severity: 'info',
+      summary: 'Download',
+      detail: 'Download del file ' + file_name,
+      life: 3000
+    })
   } catch (error) {
     toast.add({
       group: 'tr',
