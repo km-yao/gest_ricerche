@@ -195,7 +195,6 @@ async function cerca() {
     const lista = await getAllDocumenti()
     if (lista.error) throw new Error(lista.error)
 
-    files.value = []
     files.value = _toTreeTableNode(lista)
   } catch (error) {
     toast.add({
@@ -225,7 +224,6 @@ async function setAnteprimaPopover(id) {
       detail: 'Anteprima: ' + error.message,
       life: 6000
     })
-    return null
   }
 }
 
@@ -253,7 +251,7 @@ async function downloadFile(id) {
   } catch (error) {
     toast.add({
       group: 'tr',
-      severity: 'danger',
+      severity: 'error',
       summary: 'Errore',
       detail: 'Download: ' + error.message,
       life: 6000
