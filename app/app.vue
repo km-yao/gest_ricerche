@@ -9,6 +9,11 @@ const items = ref([
     label: 'Documenti',
     icon: 'pi pi-file',
     url: '/documenti'
+  },
+  {
+    label: 'Excel',
+    icon: 'pi pi-file-excel',
+    url: '/excelprod'
   }
 ])
 
