@@ -121,8 +121,6 @@
 
 <script setup>
 import { ref } from 'vue'
-// import { read, utils, writeFileXLSX } from 'xlsx'
-import { writeFileXLSX } from '@redoper1/xlsx-js-style'
 import * as ExcelJs from 'exceljs'
 
 const listaDocumenti = reactive([{}])
@@ -135,7 +133,6 @@ let excelWorkSheet = null
 let excelFileName = ''
 
 let excelStartingCell = { c: '', r: 0 }
-let excelEndingCell = { c: '', r: 0 }
 
 const listaCelleModificate = new Map()
 
@@ -152,7 +149,6 @@ const onSubmitExcelAction = (target) => {
     reader.readAsArrayBuffer(listaDocumenti.value[0])
     reader.onload = async (e) => {
       const data = new Uint8Array(e.target.result)
-      // excelWorkbook = read(data, { type: 'array', cellStyles: true, xlfn: true, bookDeps: true })
       await excelWorkbook.xlsx.load(data)
       console.log(excelWorkbook)
 
@@ -161,18 +157,11 @@ const onSubmitExcelAction = (target) => {
 
       const startCell = excelWorkSheet.autoFilter.split(':')[0]
       excelStartingCell = {
-        c: startCell.match('[A-Z]+')[0],
+        c: startCell.match('^[A-Z]+')[0],
         r: parseInt(startCell.match('[0-9]+'))
       }
 
-      const endCell = excelWorkSheet.autoFilter.split(':')[1]
-      excelEndingCell = {
-        c: endCell.match('[A-Z]+')[0],
-        r: parseInt(endCell.match('[0-9]+'))
-      }
-
       console.log(excelStartingCell)
-      console.log(excelEndingCell)
 
       _createHeader(excelWorkSheet)
       _createValues(excelWorkSheet)
@@ -182,13 +171,12 @@ const onSubmitExcelAction = (target) => {
 
 function _createHeader(sheet) {
   let columnInfo = excelStartingCell.c
-  // const headers = utils.sheet_to_json(sheet, { header: 1 })[1]
 
   const headers = sheet.getRow(excelStartingCell.r)._cells
   colonneTabella.value = []
 
-  headers.forEach((h) => {
-    const cellValue = h._value.model.value
+  headers.forEach((cell) => {
+    const cellValue = cell.value
     colonneTabella.value.push (
       {
         field: cellValue.toLowerCase().replaceAll(' ', '_'),
@@ -244,28 +232,16 @@ async function onExportExcelAction() {
   console.log(listaCelleModificate)
 
   listaCelleModificate.forEach((valore, origine) => {
-    // excelWorkSheet[origine].v = valore
-    // excelWorkSheet[origine].w = valore
-    // excelWorkSheet[origine].h = valore
-    // excelWorkSheet[origine].r = undefined
-    // // excelWorkSheet[origine].t = 's'
-    // excelWorkSheet[origine].t = (Number.isNaN(parseFloat(valore)) ? 's' : 'n')
-    // delete excelWorkSheet[origine].w
-
     excelWorkSheet.getCell(origine).value = valore
   })
 
-  // excelWorkbook.Sheets[excelWorkbook.SheetNames[5]] = excelWorkSheet
   console.log(excelWorkSheet)
-  // const wbout = writeFileXLSX(excelWorkbook, 'export-' + excelFileName, { bookType: 'xlsx', type: 'array', cellStyles: true, bookVBA: true, compression: true })
 
   // Export
   const buffer = await excelWorkbook.xlsx.writeBuffer()
 
   // Download
-  const blob = new Blob([buffer], {
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-  })
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
