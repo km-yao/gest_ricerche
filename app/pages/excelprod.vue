@@ -160,9 +160,9 @@ const onSubmitExcelAction = (target) => {
     reader.readAsArrayBuffer(listaDocumenti.value[0])
     reader.onload = (e) => {
       const data = new Uint8Array(e.target.result)
-      excelWorkbook = read(data, { type: 'array', cellStyles: true })
+      excelWorkbook = read(data, { type: 'array', cellStyles: true, xlfn: true, bookDeps: true })
       excelWorkSheet = excelWorkbook.Sheets[excelWorkbook.SheetNames[5]]
-      console.log(excelWorkSheet)
+      // console.log(excelWorkSheet)
 
       const f = excelWorkSheet['!autofilter'].ref.split(':')[0]
       excelStartingCell = {
@@ -199,6 +199,7 @@ function _createValues(sheet) {
 
   const rows = utils.sheet_to_json(sheet, { header: 1 }).slice(2)
 
+  valoriTabella.value = []
   rows.forEach((r) => {
     // const cellColumn = startingCell.c
     const oggettoTabella = { key: rowInfo }
@@ -229,18 +230,16 @@ function onExportExcelAction() {
 
   listaCelleModificate.forEach((valore, origine) => {
     excelWorkSheet[origine].v = valore
-    excelWorkSheet[origine].w = undefined
-    delete excelWorkSheet[origine].w
-
-    // excelWorkSheet[origine] = {
-    //   ...excelWorkSheet[origine],
-    //   v: valore,
-    //   w: undefined
-    // }
+    excelWorkSheet[origine].w = valore
+    excelWorkSheet[origine].h = valore
+    excelWorkSheet[origine].r = undefined
+    // excelWorkSheet[origine].t = 's'
+    excelWorkSheet[origine].t = (Number.isNaN(parseFloat(valore)) ? 's' : 'n')
   })
 
+  // excelWorkbook.Sheets[excelWorkbook.SheetNames[5]] = excelWorkSheet
   console.log(excelWorkSheet)
-  const wbout = writeFileXLSX(excelWorkbook, 'export-' + excelFileName, { bookType: 'xlsx', type: 'array', cellStyles: true, bookVBA: true })
+  const wbout = writeFileXLSX(excelWorkbook, 'export-' + excelFileName, { bookType: 'xlsx', type: 'array', cellStyles: true, bookVBA: true, compression: true })
   console.log(wbout)
 }
 </script>
